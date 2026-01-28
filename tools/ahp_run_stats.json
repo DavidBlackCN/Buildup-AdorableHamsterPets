@@ -1,6 +1,6 @@
 {
   "develop": {
-    "timestamp": 1769526631.352293,
+    "timestamp": 1769470407.2662985,
     "total_files": 693,
     "full_stats": {
       ".md": 2,
@@ -9,6 +9,27 @@
       ".properties": 3,
       ".json": 119,
       ".java": 204,
+      ".mcfunction": 9,
+      ".toml": 1,
+      ".yml": 1
+    },
+    "omitted_stats": {
+      ".txt": 1,
+      ".png": 214,
+      ".json": 38,
+      ".ogg": 93
+    }
+  },
+  "1.20.x": {
+    "timestamp": 1769635278.480848,
+    "total_files": 760,
+    "full_stats": {
+      ".txt": 2,
+      ".gradle": 5,
+      ".properties": 2,
+      ".java": 198,
+      ".json": 195,
+      ".mcmeta": 1,
       ".mcfunction": 9,
       ".toml": 1,
       ".yml": 1
