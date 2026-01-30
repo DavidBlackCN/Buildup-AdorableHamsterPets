@@ -10,6 +10,9 @@
     ".mcmeta", ".mcfunction", ".png", ".ogg"
   ],
 
+  "only_include_patterns": [
+  ],
+
   "exclude_patterns": [
     "Adorable_Hamster_Pets_Tech_Spec_*.md",
     "Adorable_Hamster_Pets_Tech_Spec_*_Backup.md",

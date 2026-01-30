@@ -122,7 +122,10 @@ def load_gitignore(root_dir):
     return patterns
 
 def is_ignored(rel_path, ignore_patterns):
-    """Check if a path matches ignore patterns."""
+    """
+    Check if a path matches ignore patterns.
+    Can also be used to check if a path matches 'allow' patterns.
+    """
     for pattern in ignore_patterns:
         # Case 1: Explicit Directory (ends with /)
         if pattern.endswith('/'):
@@ -177,8 +180,6 @@ def parse_changelog(content):
             continue
         if in_section:
             # Check for separator which might end a section within the file flow
-            # (Though usually separators are between versions, include them
-            # as part of the block until we hit the 4th header)
             output_lines.append(line)
 
     # Trim trailing newlines
@@ -234,10 +235,8 @@ def get_semantic_sort_key(rel_path):
                 if '/' in remainder:
                     parts = remainder.split('/')
                     candidate = parts[0]
-
-                    # Handle "fabric" or "neoforge" package segments (e.g. net.dawson.mod.fabric.datagen)
                     if candidate in ['fabric', 'neoforge', 'forge'] and len(parts) > 1:
-                        feature_root = parts[1] # Look one deeper
+                        feature_root = parts[1]
                     else:
                         feature_root = candidate
                 else:
@@ -282,8 +281,6 @@ def get_semantic_sort_key(rel_path):
     elif any(x in filename for x in ['registry', 'registries', 'modblocks', 'moditems', 'modentities']):
         file_prio = 0
 
-        # FINAL SORT KEY
-    # Sort by Directory *before* Filename to prevent header fragmentation.
     return loader_prio, root_type_prio, feat_prio, directory, file_prio, filename
 
 def remove_java_imports(content):
@@ -315,10 +312,8 @@ def remove_java_imports(content):
 def format_diff(current, previous):
     """Helper to format '10 (+2)' or '10 (-1)' or '10'."""
     if previous is None:
-        # First run ever for this metric, treat previous as 0
         diff = current
-        # If needing to show (+X) on first run, uncomment next line:
-        # return f"{current} (+{diff})"
+        # return f"{current} (+{diff})" # Uncomment to show diff on first run
         return f"{current}"
 
     diff = current - previous
@@ -338,7 +333,6 @@ def print_stats_table(full_stats, omitted_stats, prev_full, prev_omitted):
         if not current_data:
             return
         print(f"  {title}:")
-        # Sort by count descending, then extension name
         sorted_data = sorted(current_data.items(), key=lambda x: (-x[1], x[0]))
         for ext, count in sorted_data:
             prev_count = prev_data.get(ext, 0) if prev_data else None
@@ -404,11 +398,18 @@ def main():
     gitignore = load_gitignore(root_dir)
     exclude_patterns = config["exclude_patterns"] + extra_excludes
     omit_content_patterns = config.get("omit_content_patterns", [])
+    only_include_patterns = config.get("only_include_patterns", [])
+
     include_exts = set(config["include_extensions"])
     force_include = set(config["force_include_files"])
     forbidden = {techspec_filename, backup_filename}
 
     included_files = []
+
+    # Check if Exclusive Mode is active
+    exclusive_mode = len(only_include_patterns) > 0
+    if exclusive_mode:
+        print_info(f"EXCLUSIVE MODE ACTIVE: Including only files matching {len(only_include_patterns)} patterns.")
 
     for root, dirs, files in os.walk(root_dir):
         if ".git" in dirs: dirs.remove(".git")
@@ -418,13 +419,22 @@ def main():
             if rel_path in forbidden: continue
 
             should_include = False
-            if rel_path in force_include:
-                should_include = True
-            else:
-                ext = os.path.splitext(file)[1].lower()
-                if ext in include_exts:
-                    if not is_ignored(rel_path, gitignore) and not is_ignored(rel_path, exclude_patterns):
+
+            if exclusive_mode:
+                # 1. Must match the 'only_include_patterns'
+                if is_ignored(rel_path, only_include_patterns):
+                    # 2. Must NOT match 'exclude_patterns' (or branch excludes)
+                    if not is_ignored(rel_path, exclude_patterns):
                         should_include = True
+            else:
+                # Standard Mode
+                if rel_path in force_include:
+                    should_include = True
+                else:
+                    ext = os.path.splitext(file)[1].lower()
+                    if ext in include_exts:
+                        if not is_ignored(rel_path, gitignore) and not is_ignored(rel_path, exclude_patterns):
+                            should_include = True
 
             if should_include:
                 included_files.append(rel_path)
@@ -450,6 +460,7 @@ def main():
         ext = os.path.splitext(rel_path)[1].lower()
 
         is_binary = ext in BINARY_EXTENSIONS
+        # Respect Omit Content patterns even in Exclusive Mode
         is_omitted = is_ignored(rel_path, omit_content_patterns)
         is_compact = is_binary or is_omitted or args.structure_only
 
