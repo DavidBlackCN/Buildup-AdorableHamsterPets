@@ -401,7 +401,7 @@ def main():
     only_include_patterns = config.get("only_include_patterns", [])
 
     include_exts = set(config["include_extensions"])
-    force_include = set(config["force_include_files"])
+    force_include = config["force_include_files"]
     forbidden = {techspec_filename, backup_filename}
 
     included_files = []
@@ -428,7 +428,7 @@ def main():
                         should_include = True
             else:
                 # Standard Mode
-                if rel_path in force_include:
+                if is_ignored(rel_path, force_include):
                     should_include = True
                 else:
                     ext = os.path.splitext(file)[1].lower()
@@ -460,8 +460,12 @@ def main():
         ext = os.path.splitext(rel_path)[1].lower()
 
         is_binary = ext in BINARY_EXTENSIONS
-        # Respect Omit Content patterns even in Exclusive Mode
-        is_omitted = is_ignored(rel_path, omit_content_patterns)
+        # Respect Omit Content patterns, unless the file is explicitly force-included
+        if is_ignored(rel_path, force_include):
+            is_omitted = False
+        else:
+            is_omitted = is_ignored(rel_path, omit_content_patterns)
+
         is_compact = is_binary or is_omitted or args.structure_only
 
         # Track Stats
