@@ -21,7 +21,6 @@
     "neoforge/run/", "forge/run/", "fabric/run/", "common/run", "fabric/src/main/generated/",
     "common/src/main/resources/data/adorablehamsterpets/recipe/immersiveengineering_cloche_compat/",
     "common/src/main/resources/data/adorablehamsterpets/recipe/thermal_insolator_compat/",
-    "common/src/main/resources/data/adorablehamsterpets/tags/item/tools/knives.json",
     "common/src/main/resources/data/botanypots/",
     "common/src/main/resources/data/sereneseasons/",
     "common/src/main/resources/data/croptopia/",
