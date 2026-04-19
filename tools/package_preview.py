@@ -80,27 +80,44 @@ def copy_files(file_patterns):
         # Find files matching the pattern (handling the dynamic version number)
         found_files = glob.glob(search_path)
 
-        if not found_files:
-            print(f"MISSING: No file found matching: {pattern}")
+        # Filter out dev and sources jars first
+        valid_files =[
+            f for f in found_files
+            if "sources" not in os.path.basename(f).lower() and "dev" not in os.path.basename(f).lower()
+        ]
+
+        if not valid_files:
+            print(f"MISSING: No valid file found matching: {pattern}")
             continue
 
-        for source_path in found_files:
-            filename = os.path.basename(source_path)
+        # Sort the valid files by modification time (newest first)
+        valid_files.sort(key=os.path.getmtime, reverse=True)
 
-            # Skip dev/sources jars
-            if "sources" in filename or "dev" in filename:
-                continue
+        # Grab ONLY the most recently modified file
+        source_path = valid_files[0]
+        filename = os.path.basename(source_path)
 
-            prefix = get_preview_prefix(filename)
-            new_filename = prefix + filename
-            dest_path = os.path.join(DEST_DIR, new_filename)
+        prefix = get_preview_prefix(filename)
+        new_filename = prefix + filename
+        dest_path = os.path.join(DEST_DIR, new_filename)
 
+        # --- PRE-CLEANUP LOGIC ---
+        # Check if the file already exists in Downloads and delete it first
+        if os.path.exists(dest_path):
             try:
-                shutil.copy2(source_path, dest_path)
-                print(f"SUCCESS: Copied to {new_filename}")
-                files_copied += 1
-            except Exception as e:
-                print(f"ERROR: Failed to copy {filename}. Reason: {e}")
+                os.remove(dest_path)
+                print(f"CLEANUP: Removed existing file {new_filename}")
+            except OSError as e:
+                print(f"WARNING: Could not remove old file {new_filename}. Reason: {e}")
+                # Continue anyway; shutil.copy2 might still succeed in overwriting it
+
+        # --- COPY LOGIC ---
+        try:
+            shutil.copy2(source_path, dest_path)
+            print(f"SUCCESS: Copied to {new_filename}")
+            files_copied += 1
+        except Exception as e:
+            print(f"ERROR: Failed to copy {filename}. Reason: {e}")
 
     print(f"\nDone. {files_copied} files copied to {DEST_DIR}")
 
