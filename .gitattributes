@@ -2,3 +2,4 @@ Adorable_Hamster_Pets_Tech_Spec_develop.md             filter=git-crypt diff=git
 Adorable_Hamster_Pets_Tech_Spec_1.20.x.md              filter=git-crypt diff=git-crypt
 Adorable_Hamster_Pets_Tech_Spec_develop_Backup.md      filter=git-crypt diff=git-crypt
 Adorable_Hamster_Pets_Tech_Spec_1.20.x_Backup.md       filter=git-crypt diff=git-crypt
+tools/** filter=git-crypt diff=git-crypt
