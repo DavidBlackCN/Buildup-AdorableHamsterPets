@@ -63,4 +63,58 @@ class HamsterCombatUtilTest {
                 HamsterCombatUtil.isContractProtected(
                         HAMSTER_OWNER, HAMSTER_OWNER, true, true));
     }
+
+    @Test
+    void allPetsModeAcceptsAnyConventionallyOwnedPet() {
+        assertTrue(AcornRingContractUtil.isEligiblePet(false, false, true));
+    }
+
+    @Test
+    void hamsterOnlyModeRejectsOtherPetsButKeepsHamsters() {
+        assertFalse(AcornRingContractUtil.isEligiblePet(true, false, true));
+        assertTrue(AcornRingContractUtil.isEligiblePet(true, true, true));
+    }
+
+    @Test
+    void unownedEntitiesNeverReceiveContractProtection() {
+        assertFalse(AcornRingContractUtil.isEligiblePet(false, false, false));
+        assertFalse(AcornRingContractUtil.isEligiblePet(true, true, false));
+    }
+
+    @Test
+    void equippedRingPreventsOwnPetDamageByDefault() {
+        assertTrue(
+                AcornRingContractUtil.blocksDirectPlayerAttack(
+                        true, false, HAMSTER_OWNER, HAMSTER_OWNER, true, false));
+    }
+
+    @Test
+    void ownPetDamageCanBeEnabledWithoutChangingOtherPetBehavior() {
+        assertFalse(
+                AcornRingContractUtil.blocksDirectPlayerAttack(
+                        false, false, HAMSTER_OWNER, HAMSTER_OWNER, true, false));
+        assertFalse(
+                AcornRingContractUtil.blocksDirectPlayerAttack(
+                        true, false, HAMSTER_OWNER, CONTRACTED_OWNER, true, true));
+    }
+
+    @Test
+    void otherPetDamageProtectionRequiresTheTargetOwnerToWearARing() {
+        assertFalse(
+                AcornRingContractUtil.blocksDirectPlayerAttack(
+                        false, true, HAMSTER_OWNER, CONTRACTED_OWNER, true, false));
+        assertTrue(
+                AcornRingContractUtil.blocksDirectPlayerAttack(
+                        false, true, HAMSTER_OWNER, CONTRACTED_OWNER, true, true));
+    }
+
+    @Test
+    void playerDamageRestraintRequiresRingAndOwnedTarget() {
+        assertFalse(
+                AcornRingContractUtil.blocksDirectPlayerAttack(
+                        true, true, HAMSTER_OWNER, HAMSTER_OWNER, false, false));
+        assertFalse(
+                AcornRingContractUtil.blocksDirectPlayerAttack(
+                        true, true, HAMSTER_OWNER, null, true, false));
+    }
 }
