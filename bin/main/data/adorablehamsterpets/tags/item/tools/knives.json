@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    { "id": "#farmersdelight:tools/knives", "required": false },
-    { "id": "#c:tools/knives", "required": false },
-    { "id": "#c:tools/knife",  "required": false }
-  ]
-}

@@ -1,7 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    { "id": "#c:is_hot", "required": false },
-    { "id": "#c:climate_hot", "required": false }
-  ]
-}

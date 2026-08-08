@@ -1,5 +1,6 @@
 package net.dawson.adorablehamsterpets.fabric.datagen;
 
+import com.geckolib.renderer.internal.GeckolibItemSpecialRenderer;
 import net.dawson.adorablehamsterpets.registry.RegistrySupplier;
 import net.dawson.adorablehamsterpets.AdorableHamsterPets;
 import net.dawson.adorablehamsterpets.block.ModBlocks;
@@ -16,6 +17,7 @@ import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.resources.Identifier;
@@ -120,6 +122,7 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(ModItems.ANNOUNCEMENT_BELL_ICON.get(), ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.HAMSTER_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.HAMSTER_BEDDING.get(), ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.declareCustomModelItem(ModItems.HAMSTER_GUIDE_BOOK.get());
 
         // --- 2. Music Discs ---
         itemModelGenerator.generateFlatItem(ModItems.MUSIC_DISC_CHEESE.get(), ModelTemplates.FLAT_ITEM);
@@ -138,6 +141,7 @@ public class ModModelProvider extends FabricModelProvider {
         // Block items
         itemModelGenerator.generateFlatItem(ModBlocks.WILD_GREEN_BEAN_BUSH.get().asItem(), ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModBlocks.WILD_CUCUMBER_BUSH.get().asItem(), ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.declareCustomModelItem(ModBlocks.SUNFLOWER_BLOCK.get().asItem());
 
         // --- 4. Resources & Armor ---
         itemModelGenerator.generateFlatItem(ModItems.ACORN.get(), ModelTemplates.FLAT_ITEM);
@@ -156,12 +160,12 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(ModItems.HAMSTER_ARMOR_TRIM_SMITHING_TEMPLATE_NETHERITE.get(), ModelTemplates.FLAT_ITEM);
 
         // --- 6. Hamster Beds ---
-        // Each one uses main "hamster_bed" item model
+        Identifier hamsterBedItemModel = Identifier.fromNamespaceAndPath(AdorableHamsterPets.MOD_ID, "item/hamster_bed");
         for (RegistrySupplier<Item> bedItemSupplier : ModItems.HAMSTER_BED_ITEMS.values()) {
-            itemModelGenerator.generateFlatItem(bedItemSupplier.get(), new ModelTemplate(
-                    Optional.of(Identifier.fromNamespaceAndPath(AdorableHamsterPets.MOD_ID, "item/hamster_bed")),
-                    Optional.empty()
-            ));
+            itemModelGenerator.itemModelOutput.accept(
+                    bedItemSupplier.get(),
+                    ItemModelUtils.specialModel(hamsterBedItemModel, new GeckolibItemSpecialRenderer.Unbaked<>())
+            );
         }
 
         // --- 7. Crates ---

@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    { "id": "#c:is_icy", "required": false },
-    { "id": "#c:aquatic_icy", "required": false },
-    { "id": "#c:snowy", "required": false }
-  ]
-}

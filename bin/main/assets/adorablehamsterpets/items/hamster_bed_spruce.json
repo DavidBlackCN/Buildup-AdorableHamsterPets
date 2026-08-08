@@ -1,6 +1,9 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "adorablehamsterpets:item/hamster_bed_spruce"
+    "type": "minecraft:special",
+    "base": "adorablehamsterpets:item/hamster_bed",
+    "model": {
+      "type": "geckolib:geckolib"
+    }
   }
 }

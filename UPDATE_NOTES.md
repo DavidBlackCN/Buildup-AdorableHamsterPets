@@ -4,3 +4,4 @@
 - 🐛 fix(datapack): update vanilla enchantment overrides so single-player worlds can initialize on Minecraft 26.1.2
 - 🧹 chore(client): remove temporary world-join render guards after isolating the crash to Iris and Sodium
 - 🐛 fix(entity): register the Minecraft 26.1.2 temptation range attribute for hamsters
+- 🐛 fix(resources): restore guidebook, sunflower, and GeckoLib hamster bed inventory models on Minecraft 26.1.2

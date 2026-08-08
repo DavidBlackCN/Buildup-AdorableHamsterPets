@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    { "id": "#c:is_snowy", "required": false },
-    { "id": "#c:snowy", "required": false },
-    "minecraft:snowy_beach"
-  ]
-}
