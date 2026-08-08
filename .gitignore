@@ -1,0 +1,81 @@
+# =================================================
+# IntelliJ IDEA
+# =================================================
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# =================================================
+# Gradle & Build Output
+# =================================com
+**/.gradle/
+**/build/
+**/out/
+
+# Platform-specific build outputs
+/fabric/build/
+/neoforge/build/
+
+# =================================================
+# Architectury & Loom
+# =================================================
+# Generated folders
+**/run/
+**/runs/
+**/dev/
+**/jars/
+
+# Specific module run dirs
+/fabric/run/
+/forge/run/
+/neoforge/run/
+
+# Generated files
+*dev.jar
+*dev-shadow.jar
+*sources.jar
+*-fabric.jar
+*-forge.jar
+*-neoforge.jar
+*-all.jar
+
+# Generated data and resources
+**/src/main/generated/
+
+# =================================================
+# Logs and other temporary files
+# =================================================
+logs/
+**/*.log
+.DS_Store
+
+# =================================================
+# Temp Toolchain Stuff
+# =================================================
+Adorable_Hamster_Pets_Tech_Spec_*_Backup.md
+/tools/.env
+/tools/context_payload.json
+/tools/prompts/debug_last_prompt.md
+/tools/prompts/debug_last_response.md
+/tools/more_context.md
+/tools/context_manager_last_run_stats_*.json
+
+# Ignore compiled Python files
+__pycache__/
+*.py[cod]
+/common/bin/.gitignore
+/fabric/bin/.gitignore
+/neoforge/bin/.gitignore
+
+# Local code-intelligence indexes
+.codegraph/
+graphify-out/
+graph.json
+
+# Local generated agent instructions
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
+/QWEN.md
+/.github/copilot-instructions.md

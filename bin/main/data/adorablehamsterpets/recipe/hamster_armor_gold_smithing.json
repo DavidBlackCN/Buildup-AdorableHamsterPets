@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "minecraft:gold_ingot",
+  "base": "#adorablehamsterpets:enchantable/hamster_armor",
+  "result": {
+    "id": "adorablehamsterpets:hamster_armor_gold"
+  },
+  "template": "adorablehamsterpets:hamster_armor_trim_smithing_template_gold"
+}

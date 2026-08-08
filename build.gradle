@@ -1,0 +1,76 @@
+plugins {
+    id "net.fabricmc.fabric-loom" version "1.17.17"
+}
+
+version = "${project.mod_version}+${project.minecraft_version}"
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    maven { name = "TerraformersMC"; url = "https://maven.terraformersmc.com/" }
+    maven { name = "FzzyMaven"; url = "https://maven.fzzyhmstrs.me/" }
+    maven { name = "Modrinth"; url = "https://api.modrinth.com/maven" }
+}
+
+fabricApi {
+    configureDataGeneration {
+        client = true
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir "src/main/generated"
+            exclude ".cache/**"
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    implementation "maven.modrinth:geckolib:${project.geckolib_version}"
+    implementation "me.fzzyhmstrs:fzzy_config:${project.fzzy_config_version}"
+    implementation "maven.modrinth:patchouli:${project.patchouli_version}"
+    runtimeOnly "net.fabricmc:fabric-language-kotlin:${project.fabric_language_kotlin_version}"
+
+    compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+    compileOnly "maven.modrinth:jade:${project.jade_version}"
+    compileOnly "maven.modrinth:iris:${project.iris_version}"
+
+    implementation include("maven.modrinth:placeholder-api:${project.placeholder_api_version}")
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude ".cache/**"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 25
+    options.compilerArgs.add("-Xlint:unchecked")
+}
+
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude ".cache/**"
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}

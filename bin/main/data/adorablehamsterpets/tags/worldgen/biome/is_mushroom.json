@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    { "id": "#c:is_mushroom", "required": false },
+    { "id": "#c:mushroom", "required": false }
+  ]
+}

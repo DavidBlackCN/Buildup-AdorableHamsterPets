@@ -1,0 +1,9 @@
+{
+  "values": [
+    {
+      "id": "#minecraft:enchantable/armor",
+      "required": false
+    },
+    "#adorablehamsterpets:enchantable/hamster_armor"
+  ]
+}

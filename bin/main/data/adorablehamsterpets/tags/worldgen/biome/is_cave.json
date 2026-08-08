@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    { "id": "#c:is_cave", "required": false },
+    { "id": "#c:caves", "required": false },
+    { "id": "#c:underground", "required": false }
+  ]
+}

@@ -1,0 +1,6 @@
+- 🚚 refactor(fabric): migrate Adorable Hamster Pets to Fabric-only Minecraft 26.1.2
+- ✨ feat(rendering): restore hamster passengers, held items, animation particles and sounds, shadows, and block jiggles on the 26.1.2 render pipeline
+- 🧹 chore(resources): replace legacy Forge and plural data paths with Fabric resource conditions and 26.1.2 singular data paths
+- 🐛 fix(datapack): update vanilla enchantment overrides so single-player worlds can initialize on Minecraft 26.1.2
+- 🧹 chore(client): remove temporary world-join render guards after isolating the crash to Iris and Sodium
+- 🐛 fix(entity): register the Minecraft 26.1.2 temptation range attribute for hamsters

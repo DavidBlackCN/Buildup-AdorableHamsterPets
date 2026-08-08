@@ -1,0 +1,111 @@
+package net.dawson.adorablehamsterpets.entity.AI;
+
+import net.dawson.adorablehamsterpets.entity.custom.HamsterEntity;
+import net.minecraft.world.entity.ai.goal.TemptGoal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.dawson.adorablehamsterpets.config.ConfigDataCache;
+
+public class HamsterTemptGoal extends TemptGoal {
+
+    // --- 1. Fields ---
+    private final HamsterEntity hamster;
+    private int recheckTimer = 0; // Frequency of begging state updates
+
+    // --- 2. Constructors ---
+    public HamsterTemptGoal(HamsterEntity hamster, double speed, boolean canBeScared) {
+        super(hamster, speed, ConfigDataCache::isTamingFood, canBeScared); // Call to superclass constructor
+        this.hamster = hamster;
+        // setControls(EnumSet.of(Control.MOVE, Control.LOOK)) is handled by superclass.
+    }
+
+    @Override
+    public void start() {
+        super.start();
+        this.hamster.setActiveCustomGoalName(this.getClass().getSimpleName());
+    }
+
+    // --- 3. Public Methods (Overrides from TemptGoal/Goal) ---
+    @Override
+    public boolean canUse() {
+        // --- 1. Initial State Checks ---
+        if (this.hamster.isOrderedToSit() || this.hamster.isCelebratingDiamond() || this.hamster.isCelebratingBaby()) {
+            return false;
+        }
+
+        // --- 2. Superclass Logic ---
+        if (!super.canUse()) {
+            return false;
+        }
+
+        // --- 3. Ownership Check ---
+        // If the hamster is tamed, only its owner can tempt it.
+        if (this.hamster.isTame()) {
+            // The `closestPlayer` field is set by the `super.canStart()` call above.
+            return this.hamster.isOwnedBy(this.player);
+        }
+
+        // If the hamster is not tamed, any player can tempt it.
+        return true;
+    }
+
+    @Override
+    public boolean canContinueToUse() {
+        // --- 1. Sitting Check ---
+        if (this.hamster.isOrderedToSit() || this.hamster.isCelebratingDiamond() || this.hamster.isCelebratingBaby()) {
+            return false;
+        }
+
+        // --- 2. Superclass Logic ---
+        return super.canContinueToUse();
+    }
+
+    @Override
+    public void tick() {
+        super.tick(); // Handles pathfinding towards the player and looking at them.
+
+        // --- Begging State Logic ---
+        if (this.recheckTimer > 0) {
+            this.recheckTimer--;
+            return;
+        }
+        this.recheckTimer = 5; // Re-check begging state roughly every 5 ticks.
+
+        Level world = this.hamster.level();
+        // Begging state is visual and primarily client-driven by animation,
+        Player temptingPlayer = this.player;
+
+        if (temptingPlayer != null && temptingPlayer.isAlive() && this.hamster.distanceToSqr(temptingPlayer) < 64.0) {
+            // If a valid tempting player is nearby, set begging state based on whether they are holding a tempting item.
+            this.hamster.setBegging(isHoldingTemptItem(temptingPlayer));
+        } else {
+            // If no valid tempting player, ensure begging state is off.
+            this.hamster.setBegging(false);
+        }
+    }
+
+    @Override
+    public void stop() {
+        super.stop(); // Calls vanilla TemptGoal's stop logic (clears navigation, sets cooldown).
+        if (this.hamster.getActiveCustomGoalName().equals(this.getClass().getSimpleName())) {
+            this.hamster.setActiveCustomGoalName("None");
+        }
+        this.hamster.setBegging(false);
+        this.recheckTimer = 0;
+    }
+
+    // --- 4. Private Helper Methods ---
+
+    /**
+     * Checks if the given player is holding an item that matches the temptation predicate.
+     *
+     * @param player The player to check.
+     * @return True if the player is holding a tempting item in either hand, false otherwise.
+     */
+    private boolean isHoldingTemptItem(Player player) {
+        ItemStack mainHandStack = player.getMainHandItem();
+        ItemStack offHandStack = player.getOffhandItem();
+        return ConfigDataCache.isTamingFood(mainHandStack) || ConfigDataCache.isTamingFood(offHandStack);
+    }
+}

@@ -1,0 +1,182 @@
+package net.dawson.adorablehamsterpets.util;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.dawson.adorablehamsterpets.AdorableHamsterPets;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import java.util.Optional;
+import java.util.UUID;
+
+// Data-holder record
+public record HamsterState(
+        UUID entityUuid,
+        CompoundTag genomeNbt,
+        float health,
+        CompoundTag inventoryNbt,
+        int breedingAge,
+        long throwCooldownEndTick,
+        GreenBeanBuffData greenBeanBuffData,
+        int autoEatCooldownTicks,
+        Optional<String> customName,
+        int flowerPosition,
+        int animationPersonalityId,
+        MiniGameBehaviorData seekingBehaviorData,
+        WanderModeData wanderModeData,
+        int hamsterFlags,
+        long totalAgeTicks,
+        int timesBred
+) {
+
+    public static final Codec<CompoundTag> NBT_COMPOUND_CODEC = Codec.PASSTHROUGH.comapFlatMap(
+            (dynamic) -> {
+                Tag element = dynamic.convert(NbtOps.INSTANCE).getValue();
+                if (element instanceof CompoundTag compound) {
+                    return DataResult.success(compound);
+                }
+                return DataResult.error(() -> "Not a compound NBT: " + element);
+            },
+            (nbt) -> new Dynamic<>(NbtOps.INSTANCE, nbt)
+    );
+
+    // --- Inner Record for Mini-Game Behavior Data ---
+    public record MiniGameBehaviorData(
+            boolean isPrimedToSeekDiamonds,
+            long foundOreCooldownEndTick,
+            long cropSnackCooldownEndTick,
+            long hideAndSeekCooldownEndTick,
+            Optional<BlockPos> currentOreTarget
+    ) {
+        public static final Codec<MiniGameBehaviorData> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(
+                        Codec.BOOL.fieldOf("isPrimedToSeekDiamonds").orElse(false).forGetter(MiniGameBehaviorData::isPrimedToSeekDiamonds),
+                        Codec.LONG.fieldOf("foundOreCooldownEndTick").orElse(0L).forGetter(MiniGameBehaviorData::foundOreCooldownEndTick),
+                        Codec.LONG.fieldOf("cropSnackCooldownEndTick").orElse(0L).forGetter(MiniGameBehaviorData::cropSnackCooldownEndTick),
+                        Codec.LONG.fieldOf("hideAndSeekCooldownEndTick").orElse(0L).forGetter(MiniGameBehaviorData::hideAndSeekCooldownEndTick),
+
+                        BlockPos.CODEC.optionalFieldOf("currentOreTarget").forGetter(MiniGameBehaviorData::currentOreTarget)
+                ).apply(instance, MiniGameBehaviorData::new)
+        );
+
+        public static MiniGameBehaviorData empty() {
+            return new MiniGameBehaviorData(false, 0L, 0L, 0L, Optional.empty());
+        }
+    }
+
+    // --- Inner Record for Green Bean Buff Data ---
+    public record GreenBeanBuffData(
+            long greenBeanBuffEndTick,
+            long greenBeanBuffDuration,
+            CompoundTag activeEffectsNbt
+    ) {
+        public static final Codec<GreenBeanBuffData> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(
+                        Codec.LONG.fieldOf("greenBeanBuffEndTick").orElse(0L).forGetter(GreenBeanBuffData::greenBeanBuffEndTick),
+                        Codec.LONG.fieldOf("greenBeanBuffDuration").orElse(0L).forGetter(GreenBeanBuffData::greenBeanBuffDuration),
+                        NBT_COMPOUND_CODEC.fieldOf("activeEffectsNbt").forGetter(GreenBeanBuffData::activeEffectsNbt)
+                ).apply(instance, GreenBeanBuffData::new)
+        );
+
+        public static GreenBeanBuffData empty() {
+            return new GreenBeanBuffData(0L, 0L, new CompoundTag());
+        }
+    }
+
+    // --- Inner Record for Wander Mode/Hamster Bed Data ---
+    public record WanderModeData(
+            Optional<GlobalPos> linkedBedPos,
+            boolean bypassNextSleepDelay
+    ) {
+        public static final Codec<WanderModeData> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(
+                        GlobalPos.CODEC.optionalFieldOf("linkedBedPos").forGetter(WanderModeData::linkedBedPos),
+                        Codec.BOOL.fieldOf("bypassNextSleepDelay").orElse(false).forGetter(WanderModeData::bypassNextSleepDelay)
+                ).apply(instance, WanderModeData::new)
+        );
+
+        public static WanderModeData empty() {
+            return new WanderModeData(Optional.empty(), false);
+        }
+    }
+
+    // --- Lazy Initialized Main Codec ---
+    private static Codec<HamsterState> CODEC;
+
+    public static Codec<HamsterState> getCodec() {
+        if (CODEC == null) {
+            CODEC = RecordCodecBuilder.create(instance ->
+                    instance.group(
+                    UUIDUtil.AUTHLIB_CODEC.fieldOf("entityUuid").forGetter(HamsterState::entityUuid),
+                    NBT_COMPOUND_CODEC.fieldOf("genomeNbt").forGetter(HamsterState::genomeNbt),
+                    Codec.FLOAT.fieldOf("health").forGetter(HamsterState::health),
+                    NBT_COMPOUND_CODEC.fieldOf("inventoryNbt").forGetter(HamsterState::inventoryNbt),
+                    Codec.INT.fieldOf("breedingAge").forGetter(HamsterState::breedingAge),
+                    Codec.LONG.fieldOf("throwCooldownEndTick").forGetter(HamsterState::throwCooldownEndTick),
+                    GreenBeanBuffData.CODEC.fieldOf("greenBeanBuffData").orElse(GreenBeanBuffData.empty()).forGetter(HamsterState::greenBeanBuffData),
+                    Codec.INT.fieldOf("autoEatCooldownTicks").forGetter(HamsterState::autoEatCooldownTicks),
+                    Codec.STRING.optionalFieldOf("customName").forGetter(HamsterState::customName),
+                    Codec.INT.fieldOf("flowerPosition").orElse(0).forGetter(HamsterState::flowerPosition),
+                    Codec.INT.fieldOf("animationPersonalityId").orElse(1).forGetter(HamsterState::animationPersonalityId),
+                    MiniGameBehaviorData.CODEC.fieldOf("seekingBehaviorData").orElse(MiniGameBehaviorData.empty()).forGetter(HamsterState::seekingBehaviorData),
+                    WanderModeData.CODEC.fieldOf("wanderModeData").orElse(WanderModeData.empty()).forGetter(HamsterState::wanderModeData),
+                    Codec.INT.fieldOf("hamsterFlags").orElse(0).forGetter(HamsterState::hamsterFlags),
+                    Codec.LONG.fieldOf("totalAgeTicks").orElse(0L).forGetter(HamsterState::totalAgeTicks),
+                    Codec.INT.fieldOf("timesBred").orElse(0).forGetter(HamsterState::timesBred)
+            ).apply(instance, HamsterState::new)
+            );
+        }
+        return CODEC;
+    }
+
+    /**
+     * Creates a copy of this state with updated flags.
+     * Used to make tweaks to the NBT data.
+     */
+    public HamsterState withFlags(int newFlags) {
+        return new HamsterState(
+                this.entityUuid, this.genomeNbt, this.health, this.inventoryNbt,
+                this.breedingAge, this.throwCooldownEndTick, this.greenBeanBuffData,
+                this.autoEatCooldownTicks, this.customName, this.flowerPosition,
+                this.animationPersonalityId, this.seekingBehaviorData,
+                this.wanderModeData, newFlags, this.totalAgeTicks, this.timesBred
+        );
+    }
+
+    /**
+     * Serializes this record into an NbtCompound.
+     * @return The NbtCompound representation of this data.
+     */
+    public CompoundTag toNbt() {
+        return (CompoundTag) getCodec().encodeStart(NbtOps.INSTANCE, this)
+                .getOrThrow(error -> new IllegalStateException("Could not encode HamsterState: " + error));
+    }
+
+    /**
+     * Deserializes an NbtCompound into a HamsterState record.
+     * @param nbt The NbtCompound to read from.
+     * @return An Optional containing the deserialized data, or empty if deserialization fails.
+     */
+    public static Optional<HamsterState> fromNbt(CompoundTag nbt) {
+        // --- Legacy Migration Shim ---
+        // Convert v3.5.0 variants to v3.6.0 genome NBT to prevent shoulder hamsters being deleted
+        if (nbt.getCompound("genomeNbt").isEmpty()) {
+            int legacyId = 0;
+
+            // In v3.5.0, HamsterState serialized variant using "variantId"
+            if (nbt.getInt("variantId").isPresent()) {
+                legacyId = nbt.getIntOr("variantId", 0);
+            }
+
+            nbt.put("genomeNbt", HamsterGeneticsUtil.getGenomeForLegacyId(legacyId).saveToNbt());
+        }
+
+        return getCodec().parse(NbtOps.INSTANCE, nbt)
+                .resultOrPartial(AdorableHamsterPets.LOGGER::error);
+    }
+}

@@ -1,0 +1,153 @@
+package net.dawson.adorablehamsterpets.world.gen;
+
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
+import net.dawson.adorablehamsterpets.AdorableHamsterPets;
+import net.dawson.adorablehamsterpets.config.Configs;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Handles the registration of entity spawns within specific biomes using Fabric API.
+ */
+public class ModEntitySpawns {
+
+    public static final Set<Block> VALID_SPAWN_BLOCKS = new HashSet<>();
+
+    // --- Caches for Parsed Config Values ---
+    private static final Set<TagKey<Biome>> PARSED_TAGS = new HashSet<>();
+    private static final Set<Identifier> PARSED_INCLUDES = new HashSet<>();
+    private static final Set<Identifier> PARSED_EXCLUDES = new HashSet<>();
+    private static final Set<TagKey<Biome>> PARSED_EXCLUDE_TAGS = new HashSet<>();
+
+    static {
+        VALID_SPAWN_BLOCKS.add(Blocks.SAND);
+        VALID_SPAWN_BLOCKS.add(Blocks.RED_SAND);
+        VALID_SPAWN_BLOCKS.add(Blocks.TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.WHITE_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.ORANGE_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.MAGENTA_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.LIGHT_BLUE_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.YELLOW_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.LIME_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.PINK_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.GRAY_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.LIGHT_GRAY_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.CYAN_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.PURPLE_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.BLUE_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.BROWN_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.GREEN_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.RED_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.BLACK_TERRACOTTA);
+        VALID_SPAWN_BLOCKS.add(Blocks.STONE);
+        VALID_SPAWN_BLOCKS.add(Blocks.DEEPSLATE);
+        VALID_SPAWN_BLOCKS.add(Blocks.ANDESITE);
+        VALID_SPAWN_BLOCKS.add(Blocks.DIORITE);
+        VALID_SPAWN_BLOCKS.add(Blocks.GRANITE);
+        VALID_SPAWN_BLOCKS.add(Blocks.GRAVEL);
+        VALID_SPAWN_BLOCKS.add(Blocks.DIRT);
+        VALID_SPAWN_BLOCKS.add(Blocks.MUD);
+        VALID_SPAWN_BLOCKS.add(Blocks.PACKED_MUD);
+        VALID_SPAWN_BLOCKS.add(Blocks.GRASS_BLOCK);
+        VALID_SPAWN_BLOCKS.add(Blocks.MOSS_BLOCK);
+        VALID_SPAWN_BLOCKS.add(Blocks.COARSE_DIRT);
+        VALID_SPAWN_BLOCKS.add(Blocks.PODZOL);
+        VALID_SPAWN_BLOCKS.add(Blocks.SNOW_BLOCK);
+        VALID_SPAWN_BLOCKS.add(Blocks.MYCELIUM);
+        VALID_SPAWN_BLOCKS.add(Blocks.SCULK);
+    }
+
+    /**
+     * Parses the biome lists from the config file into Sets for efficient lookup.
+     * This should be called once during mod initialization.
+     */
+    public static void parseConfig() {
+        // Clear existing sets to allow for config reloading
+        PARSED_TAGS.clear();
+        PARSED_INCLUDES.clear();
+        PARSED_EXCLUDES.clear();
+        PARSED_EXCLUDE_TAGS.clear();
+
+        // Parse Tags
+        for (String tagStr : Configs.AHP_WORLDGEN.spawnBiomeTags) {
+            try {
+                PARSED_TAGS.add(TagKey.create(Registries.BIOME, Identifier.parse(tagStr)));
+            } catch (Exception e) {
+                AdorableHamsterPets.LOGGER.info("[BiomeConfig] Invalid biome tag identifier in config: '{}'", tagStr);
+            }
+        }
+
+        // Parse Includes
+        for (String biomeIdStr : Configs.AHP_WORLDGEN.includeBiomes) {
+            try {
+                PARSED_INCLUDES.add(Identifier.parse(biomeIdStr));
+            } catch (Exception e) {
+                AdorableHamsterPets.LOGGER.warn("[BiomeConfig] Invalid biome identifier in include list: '{}'", biomeIdStr);
+            }
+        }
+
+        // Parse Excludes (IDs)
+        for (String biomeIdStr : Configs.AHP_WORLDGEN.excludeBiomes) {
+            try {
+                PARSED_EXCLUDES.add(Identifier.parse(biomeIdStr));
+            } catch (Exception e) {
+                AdorableHamsterPets.LOGGER.warn("[BiomeConfig] Invalid biome identifier in exclude list: '{}'", biomeIdStr);
+            }
+        }
+
+        // Parse Excludes (Tags)
+        for (String tagStr : Configs.AHP_WORLDGEN.excludeBiomeTags) {
+            try {
+                PARSED_EXCLUDE_TAGS.add(TagKey.create(Registries.BIOME, Identifier.parse(tagStr)));
+            } catch (Exception e) {
+                AdorableHamsterPets.LOGGER.info("[BiomeConfig] Invalid biome exclusion tag identifier in config: '{}'", tagStr);
+            }
+        }
+
+        AdorableHamsterPets.LOGGER.info("[BiomeConfig] Parsed {} tags, {} includes, {} exclude IDs, and {} exclude tags.",
+                PARSED_TAGS.size(), PARSED_INCLUDES.size(), PARSED_EXCLUDES.size(), PARSED_EXCLUDE_TAGS.size());
+    }
+
+    /**
+     * The universal decider for Fabric, driven by the parsed config.
+     *
+     * @param ctx The biome selection context provided by Fabric API.
+     * @return True if hamsters should spawn in this biome, false otherwise.
+     */
+    public static boolean shouldSpawnInBiome(BiomeSelectionContext ctx) {
+        // Get the Identifier directly from the Optional.
+        Identifier biomeId = ctx.getBiomeKey().identifier();
+
+        // 1. Exclusion check (ID) - Highest Priority
+        if (PARSED_EXCLUDES.contains(biomeId)) {
+            return false;
+        }
+
+        // 2. Exclusion check (Tag) - High Priority
+        for (TagKey<Biome> tag : PARSED_EXCLUDE_TAGS) {
+            if (ctx.hasTag(tag)) {
+                return false;
+            }
+        }
+
+        // 3. Inclusion check (ID)
+        if (PARSED_INCLUDES.contains(biomeId)) {
+            return true;
+        }
+
+        // 4. Inclusion check (Tag)
+        for (TagKey<Biome> tag : PARSED_TAGS) {
+            if (ctx.hasTag(tag)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+}

@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    { "id": "#c:greenbeans", "required": false },
+    { "id": "#c:green_beans", "required": false },
+    { "id": "#c:crops/green_beans", "required": false }
+  ]
+}

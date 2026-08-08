@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "H": "adorablehamsterpets:acorn_hat",
+    "S": "adorablehamsterpets:acorn_shard"
+  },
+  "pattern": [
+    " H ",
+    "SSS",
+    "SSS"
+  ],
+  "result": {
+    "id": "adorablehamsterpets:hamster_armor_acorn"
+  }
+}

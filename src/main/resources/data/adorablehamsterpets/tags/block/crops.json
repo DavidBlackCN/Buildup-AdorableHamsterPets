@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "adorablehamsterpets:cucumber_crop",
+    "adorablehamsterpets:green_beans_crop",
+    "#minecraft:crops",
+    { "id": "#c:crops", "required": false }
+  ]
+}
